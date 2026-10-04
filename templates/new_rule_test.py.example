@@ -1,0 +1,33 @@
+"""複製這份檔案內容到 tests/，再將空白處改成你的新規則。"""
+
+import unittest
+
+from services.game_service import GameService
+
+
+class MemoryRepository:
+    def load(self):
+        return None
+
+    def save(self, state):
+        self.saved_state = state
+
+
+class NewRuleTests(unittest.TestCase):
+    def setUp(self):
+        self.game = GameService(MemoryRepository())
+        self.state = self.game.start_new_game()
+
+    def test_your_new_rule_in_normal_case(self):
+        # 1. 準備資料
+        # 2. 呼叫 GameService 的公開方法
+        # 3. 比對你期待的 State 或回饋
+        self.fail("請將這個模板改成真正的測試")
+
+    def test_your_new_rule_does_not_break_scoreboard(self):
+        # 若新規則可能結束遊戲，請確認記分板仍只記錄一次成績。
+        self.fail("請將這個模板改成真正的測試")
+
+
+if __name__ == "__main__":
+    unittest.main()

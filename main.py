@@ -1,182 +1,63 @@
-"""A small zoo feeding program for Python beginners."""
+"""動物園遊戲的程式入口。
 
-from animals.elephant import Elephant
-from animals.lion import Lion
-from animals.penguin import Penguin
-from feeding.feeder import feed_one_animal
-from feeding.food import FEED_COST
+這個檔案只負責把使用者操作交給遊戲服務，再把結果顯示出來。
+遊戲規則不寫在這裡，這樣日後改規則時不會同時弄壞畫面。
+"""
 
-
-def find_animal(name, animals):
-    """Find an animal by name. Return None if it is not in the list."""
-    for animal in animals:
-        if animal["name"] == name:
-            return animal
-    return None
+from repositories.json_game_repository import JsonGameRepository
+from repositories.json_scoreboard_repository import JsonScoreboardRepository
+from services.game_service import GameService
+from ui.console import show_action_result, show_game_state, show_help, show_leaderboard
 
 
-def feed_animal(name, animals):
-    """餵食字典中的動物，保留給初學者練習函式和字典。"""
-    animal = find_animal(name, animals)
-
-    if animal is None:
-        return "找不到這隻動物。"
-
-    if animal["hunger"] <= 30:
-        return "這隻動物已經吃飽了。"
-
-    animal["hunger"] = animal["hunger"] - 60
-
-    if animal["hunger"] < 0:
-        animal["hunger"] = 0
-
-    return "餵食成功。"
+SAVE_FILE = "data/zoo_save.json"
+SCOREBOARD_FILE = "data/scoreboard.json"
 
 
-class ZooGame:
-    def __init__(self):
-        self.animals = [
-            Lion("Leo", hunger=55),
-            Penguin("Pipi", hunger=10),
-        ]
-        self.feed_stock = 20
-        self.money = 0
-        self.day = 1
-        self.day_started = False
-        self.fed_today = []
-
-    @property
-    def zoo_health(self):
-        total_health = 0
-        for animal in self.animals:
-            total_health = total_health + animal.health
-        return total_health // len(self.animals)
-
-    def start_day(self):
-        if self.day_started:
-            return
-
-        for animal in self.animals:
-            animal.start_day()
-        self.fed_today = []
-        self.day_started = True
-
-    def feed(self, animal_name):
-        if not self.day_started:
-            raise RuntimeError("請先開始今天，再餵食動物。")
-
-        animal = None
-        for current_animal in self.animals:
-            if current_animal.name == animal_name:
-                animal = current_animal
-                break
-
-        if animal is None:
-            return "找不到這隻動物。"
-
-        if animal.name in self.fed_today:
-            return "{} 今天已經餵過了。".format(animal.name)
-
-        was_fed, remaining_feed = feed_one_animal(animal, self.feed_stock)
-        if not was_fed:
-            if self.feed_stock < FEED_COST:
-                return "飼料不夠了。"
-            return "{} 現在不需要吃東西。".format(animal.name)
-
-        self.feed_stock = remaining_feed
-        self.fed_today.append(animal.name)
-        return "{} 吃了{}，消耗 {} 份飼料。".format(
-            animal.name, animal.food_type, FEED_COST
-        )
-
-    def finish_day(self):
-        if not self.day_started:
-            raise RuntimeError("今天還沒有開始。")
-
-        for animal in self.animals:
-            animal.finish_day()
-
-        daily_income = 5
-        self.money = self.money + daily_income
-        report = {
-            "day": self.day,
-            "animals": [
-                {
-                    "name": animal.name,
-                    "hunger": animal.hunger,
-                    "health": animal.health,
-                }
-                for animal in self.animals
-            ],
-            "feed_stock": self.feed_stock,
-            "daily_income": daily_income,
-            "money": self.money,
-            "zoo_health": self.zoo_health,
-        }
-        self.day = self.day + 1
-        self.day_started = False
-        return report
-
-
-def show_zoo(game):
-    print("\n我的動物園 - Day {}".format(game.day))
-    print("--------------------")
-    for index, animal in enumerate(game.animals, start=1):
-        filled_blocks = animal.hunger * 8 // 100
-        hunger_bar = "#" * filled_blocks + "-" * (8 - filled_blocks)
-        print("{} {}".format(animal.name, animal.speak()))
-        print("  飢餓度：{} {}".format(hunger_bar, animal.hunger))
-        print("  健康：{}".format(animal.health))
-
-    print("--------------------")
-    print("飼料：{}".format(game.feed_stock))
-    print("動物園健康：{}".format(game.zoo_health))
-    print("累計收益：${}".format(game.money))
-
-
-def show_day_report(report):
-    print("\nDay {}".format(report["day"]))
-    for animal in report["animals"]:
-        print("{}    健康 {}    飢餓度 {}".format(
-            animal["name"], animal["health"], animal["hunger"]
-        ))
-    print("飼料剩餘：{}".format(report["feed_stock"]))
-    print("今日收益：+${}".format(report["daily_income"]))
-    print("累計收益：${}".format(report["money"]))
-    print("動物園健康：{}".format(report["zoo_health"]))
+def create_game():
+    """建立服務需要的存檔工具，並交給它管理遊戲。"""
+    repository = JsonGameRepository(SAVE_FILE)
+    scoreboard_repository = JsonScoreboardRepository(SCOREBOARD_FILE)
+    return GameService(repository, scoreboard_repository)
 
 
 def main():
-    game = ZooGame()
+    game = create_game()
+    state = game.load_or_create_game()
 
-    print("歡迎來到「養活你的動物園」！")
-    print("每天餵食一次會消耗 {} 份飼料。".format(FEED_COST))
-    print("飢餓度越高越餓；每天結束時，太餓會影響健康。")
+    print("歡迎來到小小動物園！")
+    print("目標：照顧動物園到第 7 天，別讓任何動物的健康降到 0。")
 
     while True:
-        game.start_day()
-        show_zoo(game)
+        show_game_state(state)
 
-        for index, animal in enumerate(game.animals, start=1):
-            print("{}. 餵食 {}".format(index, animal.name))
-        print("{}. 結束今天".format(len(game.animals) + 1))
-        print("0. 離開遊戲")
-
-        choice = input("請選擇：").strip()
-        if choice == "0":
-            print("遊戲結束。")
+        if game.is_finished(state):
+            show_action_result(game.get_finish_message(state))
+            if not state.score_recorded:
+                player_name = input("請輸入你的名字，記錄最後資金：")
+                show_action_result(game.record_final_score(state, player_name))
+            show_leaderboard(game.get_top_scores())
             break
 
-        if choice == str(len(game.animals) + 1):
-            show_day_report(game.finish_day())
-            continue
+        show_help()
+        choice = input("請選擇：").strip()
 
-        if choice.isdigit() and 1 <= int(choice) <= len(game.animals):
-            animal = game.animals[int(choice) - 1]
-            print(game.feed(animal.name))
-            continue
+        if choice == "1":
+            name = input("要餵哪一隻動物？").strip()
+            result = game.feed_animal(state, name)
+        elif choice == "2":
+            result = game.end_day(state)
+        elif choice == "3":
+            state = game.start_new_game()
+            result = "已建立新的動物園。"
+        elif choice == "0":
+            game.save_game(state)
+            print("遊戲已存檔，再見！")
+            break
+        else:
+            result = "請輸入選單上的數字。"
 
-        print("輸入無效，請選擇清單上的數字。")
+        show_action_result(result)
 
 
 if __name__ == "__main__":

@@ -1,102 +1,81 @@
-# Zoo System 動物園餵食小程式
+# 小小動物園：AI Coding 教學範例
 
-這是一個給 Python 初學者閱讀的小專案。玩家每天照顧動物、使用飼料、維持健康並累積收益，也可以從程式中學習函式、字典和簡單的類別繼承。
+這是一個可以直接玩的迷你動物園遊戲，也是給「可能還沒寫過程式」的同學閱讀 AI 生成專案的練習素材。
 
-程式只使用 Python 內建功能，不需要安裝套件、不需要建置，也不需要資料庫。
+你不必先背 Python。這個專案要練習的是：看懂一個功能經過哪些模組、先規劃再請 AI 修改，以及用測試確認結果。
 
-## 開始使用
+## 先玩一次
 
-需要 Python 3.9 或更新版本。在專案資料夾開啟終端機：
+本專案只使用 Python 內建功能。請在專案資料夾開啟終端機：
 
 ```powershell
-python --version
-python main.py
-python -m unittest discover -s tests -v
-```
-
-執行遊戲：
-
-```text
 python main.py
 ```
 
-每天開始時動物會變餓。玩家可以選擇餵動物或結束今天；結束時會更新健康、增加收益，然後進入下一天。
+遊戲會自動建立存檔；離開後再次執行會接續原本的狀態。選擇「重新開始」即可建立全新的動物園。
 
-## 專案檔案
+若你的電腦無法使用 `python` 指令，請先安裝 Python 3.9 以上，並在安裝時勾選加入系統 PATH。
+
+## 玩家規則
+
+- 照顧 Lion、Penguin、Monkey 三隻動物，經營到第 7 天。
+- 餵食消耗 1 份食物，讓飢餓降低 30。
+- 每天結束時，每種動物依自己的規則變餓。
+- 飢餓度 80 以上會失去 15 點健康；30 以下會恢復 5 點健康。
+- 健康越好，動物園每天的收入越高。
+- 任一動物健康降到 0，遊戲失敗。
+- 遊戲結束時輸入名字，最後資金會存入記分板並顯示前五名。
+
+## 專案地圖
 
 ```text
 Zoo_manager/
-├── .gitignore
-├── README.md
-├── arc_plan_init.md
+├── main.py                    # 程式入口：接收玩家選擇
+├── ui/
+│   └── console.py              # 顯示畫面與回饋
+├── services/
+│   └── game_service.py         # 遊戲規則與操作流程
+├── domain/
+│   ├── animal.py               # 一隻動物的資料與狀態
+│   ├── zoo_state.py            # 整座動物園的狀態
+│   └── animal_rules.py         # 各種類動物的差異規則
+├── repositories/
+│   ├── game_repository.py      # 存檔工具應提供的介面
+│   └── json_game_repository.py # JSON 存檔的實作
+│   ├── scoreboard_repository.py # 記分板應提供的介面
+│   └── json_scoreboard_repository.py # 記分板 JSON 的實作
 ├── docs/
-│   └── learning_guide.md
-├── animals/
-│   ├── animal.py
-│   ├── lion.py
-│   ├── elephant.py
-│   └── penguin.py
-├── feeding/
-│   ├── feeder.py
-│   └── food.py
-├── main.py
-└── tests/
-    ├── test_animals.py
-    ├── test_game.py
-    └── test_main.py
+│   └── lesson_map.md           # 課堂閱讀與練習指引
+└── tests/                      # 核心規則與存檔測試
 ```
 
-- `main.py`：每日遊戲流程、遊戲狀態和程式入口。
-- `animals/animal.py`：基本動物類別，管理名字、飢餓度和健康。
-- `animals/lion.py`、`animals/elephant.py`、`animals/penguin.py`：動物都繼承 `Animal`，並各自提供食物和每日飢餓增加量。
-- `feeding/food.py`、`feeding/feeder.py`：設定飼料消耗量和餵食規則。
-- `tests/`：使用 Python 內建的 `unittest` 測試動物、遊戲循環與舊有字典範例。
-- `docs/learning_guide.md`：用簡單步驟介紹程式和練習方式。
-- `arc_plan_init.md`：原始開發計畫，保留作為需求背景；目前程式刻意簡化，沒有採用計畫中較進階的介面與分層。
+最重要的流程是：
 
-## 遊戲規則
-
-- 飢餓度範圍是 0 到 100；越高代表越餓。
-- 每天開始時，獅子增加 20 點飢餓度，企鵝增加 15 點，大象增加 10 點。
-- 每次餵食會消耗 2 份飼料，並降低 40 點飢餓度；動物只吃自己適合的食物。
-- 每天結束時，飢餓度 70 以上的動物健康減少 10；飢餓度 30 以下的動物健康增加 2。
-- 每天結束會獲得 $5 收益，並進入下一天。
-- 動物健康和飢餓度都不會低於 0 或高於 100。
-
-## 動物類別和繼承
-
-每種動物都可以使用 `Animal` 的飢餓和健康功能，也有自己的食物和叫聲：
-
-```python
-from animals.lion import Lion
-
-leo = Lion("Leo", hunger=60)
-leo.start_day()        # 新的一天開始，飢餓度增加
-leo.eat("肉")          # 吃對食物後，飢餓度降低
+```text
+玩家操作 → UI → GameService → Domain + Repository → 回饋給玩家
 ```
 
-`Lion(Animal)` 表示 `Lion` 繼承 `Animal`。所有動物共用相同的每日狀態更新方法，個別類別只設定自己的食物、飢餓速度和叫聲。
+詳見 [教學地圖](docs/lesson_map.md)。
 
-## 字典版餵食函式
+要增加功能時，先讀 [擴充指南](docs/extension_guide.md)，並從 [templates](templates/README.md) 複製功能變更單，而不是直接要求 AI 重寫專案。
 
-`main.py` 仍保留 `find_animal` 和 `feed_animal`，示範用字典和函式處理動物資料；遊戲本身使用動物類別。
-
-- 字典版餵食範例沿用原本的 `name`、`species` 和 `hunger` 格式。
-- 遊戲狀態只存在程式執行期間；重新啟動後會重新開始。
-
-## Git 入門
-
-此專案已初始化 Git。查看檔案狀態：
+## 執行測試
 
 ```powershell
-git status
+python -m unittest discover -s tests -v
 ```
 
-確認要保存的檔案後，可以加入並提交：
+測試不是要證明「程式沒有任何問題」，而是確認重要規則仍符合我們寫下的期待：餵食、每日變化、過度飢餓與存檔讀取。
 
-```powershell
-git add .gitignore README.md main.py tests docs arc_plan_init.md
-git commit -m "Simplify zoo tutorial for beginners"
+## 給 AI 的第一個練習
+
+不要立刻要求 AI 修改。先試著問：
+
+```text
+請不要修改程式。依 README、docs/lesson_map.md 與檔案結構，整理：
+1. 每個模組的主要責任；
+2. 餵食 Leo 會經過哪些 function；
+3. 哪些判斷是你從程式確認的事實，哪些只是推測。
 ```
 
-`.gitignore` 會略過 Python 快取等不需要保存的檔案。
+接著再選擇 `docs/lesson_map.md` 裡的一個 Level 任務，要求 AI 先提出最小修改計畫與驗收方式。

@@ -14,3 +14,7 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# 遊戲執行時建立的個人存檔
+data/zoo_save.json
+data/scoreboard.json
