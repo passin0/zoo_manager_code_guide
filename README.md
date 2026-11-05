@@ -2,19 +2,19 @@
 
 一款用終端機遊玩的迷你動物園經營遊戲，也是 AI Coding 課程的閱讀與修改練習專案。
 
-專案只使用 Python 標準函式庫，只要有PYTHON不用額外下載東西，結構拆成數個小模組，方便追蹤「一個操作經過哪些程式」。
+專案只使用 Python 標準函式庫，裝好 Python 就能執行，不需要額外安裝套件。結構拆成數個小模組，方便追蹤「一個操作經過哪些程式」。
 專案中預留了一個 bug，練習方式請見 [挑戰指南](docs/challenge_guide.md)。
 
 ## 快速開始
 
-需求：Python 3.9 以上(可以安裝VScode python擴充模組)。
+需求：Python 3.9 以上（建議搭配 VS Code 與 Python 擴充套件）。
 
+可以先在終端機輸入下面這行確認環境，顯示 `Python 3.9` 以上的版本號即可：
 
-note：可以先檢查一下 terminal 終端機輸入下面這行，有東西就可以了。
-
-```shell
+```powershell
 python --version
 ```
+
 在專案資料夾開啟終端機並執行：
 
 ```powershell
