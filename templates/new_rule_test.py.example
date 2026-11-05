@@ -1,13 +1,20 @@
-"""複製這份檔案內容到 tests/，再將空白處改成你的新規則。"""
+"""複製這份檔案到 tests/，檔名必須以 test_ 開頭（例如 tests/test_my_rule.py），
+否則 `python -m unittest discover -s tests` 找不到它。再將空白處改成你的新規則。"""
 
+import tempfile
 import unittest
+from pathlib import Path
 
+from repositories.json_scoreboard_repository import JsonScoreboardRepository
 from services.game_service import GameService
 
 
 class MemoryRepository:
+    def __init__(self):
+        self.saved_state = None
+
     def load(self):
-        return None
+        return self.saved_state
 
     def save(self, state):
         self.saved_state = state
@@ -15,8 +22,13 @@ class MemoryRepository:
 
 class NewRuleTests(unittest.TestCase):
     def setUp(self):
-        self.game = GameService(MemoryRepository())
+        self.temporary_folder = tempfile.TemporaryDirectory()
+        self.scoreboard = JsonScoreboardRepository(Path(self.temporary_folder.name) / "scoreboard.json")
+        self.game = GameService(MemoryRepository(), self.scoreboard)
         self.state = self.game.start_new_game()
+
+    def tearDown(self):
+        self.temporary_folder.cleanup()
 
     def test_your_new_rule_in_normal_case(self):
         # 1. 準備資料
@@ -25,7 +37,10 @@ class NewRuleTests(unittest.TestCase):
         self.fail("請將這個模板改成真正的測試")
 
     def test_your_new_rule_does_not_break_scoreboard(self):
-        # 若新規則可能結束遊戲，請確認記分板仍只記錄一次成績。
+        # 若新規則可能結束遊戲，請確認記分板仍只記錄一次成績，例如：
+        # self.game.record_final_score(self.state, "Ada")
+        # self.game.record_final_score(self.state, "Ada")
+        # self.assertEqual(len(self.scoreboard.load_scores()), 1)
         self.fail("請將這個模板改成真正的測試")
 
 

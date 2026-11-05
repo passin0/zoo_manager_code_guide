@@ -28,24 +28,28 @@ python main.py
 ## 專案地圖
 
 ```text
-Zoo_manager/
-├── main.py                    # 程式入口：接收玩家選擇
+zoo_manager_code_guide/
+├── main.py                              # 程式入口：接收玩家選擇
 ├── ui/
-│   └── console.py              # 顯示畫面與回饋
+│   └── console.py                       # 顯示畫面與回饋
 ├── services/
-│   └── game_service.py         # 遊戲規則與操作流程
+│   └── game_service.py                  # 遊戲規則與操作流程
 ├── domain/
-│   ├── animal.py               # 一隻動物的資料與狀態
-│   ├── zoo_state.py            # 整座動物園的狀態
-│   └── animal_rules.py         # 各種類動物的差異規則
+│   ├── animal.py                        # 一隻動物的資料與狀態
+│   ├── zoo_state.py                     # 整座動物園的狀態
+│   └── animal_rules.py                  # 各種類動物的差異規則
 ├── repositories/
-│   ├── game_repository.py      # 存檔工具應提供的介面
-│   └── json_game_repository.py # JSON 存檔的實作
-│   ├── scoreboard_repository.py # 記分板應提供的介面
-│   └── json_scoreboard_repository.py # 記分板 JSON 的實作
+│   ├── game_repository.py               # 存檔工具應提供的介面
+│   ├── json_game_repository.py          # JSON 存檔的實作
+│   ├── scoreboard_repository.py         # 記分板應提供的介面
+│   └── json_scoreboard_repository.py    # 記分板 JSON 的實作
 ├── docs/
-│   └── lesson_map.md           # 課堂閱讀與練習指引
-└── tests/                      # 核心規則與存檔測試
+│   ├── lesson_map.md                    # 課堂閱讀與練習指引
+│   ├── extension_guide.md               # 新需求應該放在哪裡
+│   └── instructor_notes.md              # 講師用（含 bug 解答，學生先別看）
+├── templates/                           # 修改前填寫的工作底稿
+├── tests/                               # 核心規則、存檔與記分板測試
+└── data/                                # 執行遊戲後才會產生的存檔（不進版控）
 ```
 
 最重要的流程是：
@@ -64,7 +68,7 @@ Zoo_manager/
 python -m unittest discover -s tests -v
 ```
 
-測試不是要證明「程式沒有任何問題」，而是確認重要規則仍符合我們寫下的期待：餵食、每日變化、過度飢餓與存檔讀取。
+測試不是要證明「程式沒有任何問題」，而是確認重要規則仍符合我們寫下的期待：餵食、每日變化、過度飢餓、存檔讀取與記分板。
 
 ## 給 AI 的第一個練習
 

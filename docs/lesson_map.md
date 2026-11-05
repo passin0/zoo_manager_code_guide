@@ -38,7 +38,8 @@ domain/                 repositories/
   → main.py 呼叫 game.feed_animal(...)
   → GameService 找到 Leo，檢查食物和飢餓規則
   → Animal.feed(30) 改變 Leo 的 hunger
-  → JsonGameRepository.save(...) 保存新狀態
+  → GameService.save_game(state) 交給 Repository
+  → JsonGameRepository.save(state) 寫入 JSON 檔
   → 回傳「已餵食 Leo...」給畫面
 ```
 
@@ -87,9 +88,13 @@ domain/                 repositories/
 
 發現問題的位置不一定是真正壞掉的位置。
 
-### 講師用的可控制 Bug
+### 找出專案裡的 Bug
 
-不要把錯誤版本當成正式專案交付。若課堂需要實際除錯，可先提交目前正常版本，
-再暫時移除 `GameService.feed_animal()` 中的 `self.save_game(state)` 這一行。
+README 提到這個專案裡放了一個 bug。請和 AI 一起：
 
-學生會看到「已餵食」且畫面立即更新，但重開後資料消失；此時 `test_feeding_uses_food_reduces_hunger_and_saves` 也會失敗。請學生先重現、分類，再要求 AI 提出最小修正方案，最後把那行恢復並重跑測試。
+1. 先試著重現：完整玩完一局，再重新啟動遊戲，結果符合你的預期嗎？
+2. 描述現象：哪個操作之後、看到了什麼、預期是什麼？
+3. 請 AI 先說明可能原因與證據，再提出最小修正方案；確認後才修改。
+4. 修正後重跑測試，並想想：為什麼現有測試沒有抓到它？
+
+講師解答與額外的除錯練習在 `docs/instructor_notes.md`，請先自己試過再看。
