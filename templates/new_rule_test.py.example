@@ -1,17 +1,32 @@
-"""複製這份檔案到 tests/，檔名必須以 test_ 開頭（例如 tests/test_my_rule.py），
-否則 `python -m unittest discover -s tests` 找不到它。再將空白處改成你的新規則。"""
+"""新規則的測試底稿。
 
-import tempfile
-import unittest
-from pathlib import Path
+使用方式：
+1. 把這個檔案複製到 tests/，檔名必須以 test_ 開頭（例如 tests/test_my_rule.py），
+   否則 `python -m unittest discover -s tests` 找不到它。
+2. 把下面的 self.fail(...) 換成真正的測試內容。
+3. 執行 python -m unittest discover -s tests -v 確認結果。
+"""
 
+# import 會載入其他模組的程式，讓這個檔案可以使用。
+import tempfile  # 建立「暫存資料夾」，測試結束後自動刪除，不會弄髒真正的存檔。
+import unittest  # Python 內建的測試工具。
+from pathlib import Path  # 用來組合檔案路徑。
+
+from domain.animal import Animal
+from domain.zoo_state import ZooState
 from repositories.json_scoreboard_repository import JsonScoreboardRepository
 from services.game_service import GameService
 
 
 class MemoryRepository:
+    """假的存檔工具：只把狀態記在記憶體裡，不寫入任何檔案。
+
+    GameService 只要求存檔工具有 load() 和 save(state) 兩個方法，
+    所以測試時可以用這個簡單的類別代替真正的 JsonGameRepository。
+    """
+
     def __init__(self):
-        self.saved_state = None
+        self.saved_state = None  # 還沒存過任何東西
 
     def load(self):
         return self.saved_state
@@ -20,29 +35,60 @@ class MemoryRepository:
         self.saved_state = state
 
 
+# 測試類別要繼承 unittest.TestCase，裡面以 test_ 開頭的方法都會被當成一個測試。
 class NewRuleTests(unittest.TestCase):
     def setUp(self):
+        """每個測試開始前都會自動執行一次，讓每個測試都從相同的起點開始。"""
         self.temporary_folder = tempfile.TemporaryDirectory()
         self.scoreboard = JsonScoreboardRepository(Path(self.temporary_folder.name) / "scoreboard.json")
-        self.game = GameService(MemoryRepository(), self.scoreboard)
-        self.state = self.game.start_new_game()
+        self.repository = MemoryRepository()
+        self.game = GameService(self.repository, self.scoreboard)
+        self.state = self.game.start_new_game()  # 預設的新遊戲：Leo、Pipi、Momo
 
     def tearDown(self):
+        """每個測試結束後都會自動執行一次，負責清理。"""
         self.temporary_folder.cleanup()
 
+    def test_example_feeding_reduces_hunger(self):
+        """示範：一個完整的測試通常分成「準備 → 執行 → 檢查」三段。"""
+        # 準備：可以直接用 setUp 建好的 self.state，
+        # 也可以自己建立一個特定情況，例如只有一隻很餓的 Leo：
+        state = ZooState(1, 20, 12, [Animal("Leo", "Lion", hunger=70)])
+
+        # 執行：呼叫 GameService 的公開方法，就像玩家在選單操作一樣。
+        result = self.game.feed_animal(state, "Leo")
+
+        # 檢查：常用的比對方法
+        # assertEqual(a, b)  → a 必須等於 b
+        # assertIn(a, b)     → 字串 b 裡必須包含 a
+        # assertTrue(x)      → x 必須成立
+        # assertIs(a, b)     → a 和 b 必須是同一個物件
+        self.assertEqual(state.find_animal("Leo").hunger, 40)
+        self.assertEqual(state.food, 11)
+        self.assertIn("已餵食 Leo", result)
+        # 確認有存檔：存下來的必須是這次修改的 state。
+        self.assertIs(self.repository.saved_state, state)
+
     def test_your_new_rule_in_normal_case(self):
-        # 1. 準備資料
-        # 2. 呼叫 GameService 的公開方法
-        # 3. 比對你期待的 State 或回饋
-        self.fail("請將這個模板改成真正的測試")
+        # 準備：
+        # 執行：
+        # 檢查：
+        self.fail("請將這個測試改成你的新規則在一般情況下的行為")
+
+    def test_your_new_rule_in_exception_case(self):
+        # 例外情況：例如找不到動物、資源不足。
+        # 除了檢查失敗訊息，也要檢查狀態「沒有」被改變。
+        self.fail("請將這個測試改成你的新規則在例外情況下的行為")
 
     def test_your_new_rule_does_not_break_scoreboard(self):
-        # 若新規則可能結束遊戲，請確認記分板仍只記錄一次成績，例如：
-        # self.game.record_final_score(self.state, "Ada")
-        # self.game.record_final_score(self.state, "Ada")
+        # 若新規則可能讓遊戲提早結束，確認記分板仍只記錄一次成績。例如：
+        # self.state.day = 8                                   # 讓遊戲進入結束狀態
+        # self.game.record_final_score(self.state, "Ada")      # 第一次記錄
+        # self.game.record_final_score(self.state, "Ada")      # 第二次應該被拒絕
         # self.assertEqual(len(self.scoreboard.load_scores()), 1)
-        self.fail("請將這個模板改成真正的測試")
+        self.fail("請將這個測試改成真正的檢查，或在不需要時刪除")
 
 
+# 直接執行這個檔案（python tests/test_my_rule.py）時，才會進入這一段。
 if __name__ == "__main__":
     unittest.main()
