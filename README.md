@@ -1,5 +1,5 @@
 # 小小動物園 Zoo Manager
-
+[搭配社團教材](https://hackmd.io/@HhJHxdDdT7GnfKEJgWPiKQ/SyONLVVYzx)
 一款用終端機遊玩的迷你動物園經營遊戲，也是 AI Coding 課程的閱讀與修改練習專案。
 
 專案只使用 Python 標準函式庫，裝好 Python 就能執行，不需要額外安裝套件。結構拆成數個小模組，方便追蹤「一個操作經過哪些程式」。
